@@ -1,7 +1,8 @@
 import tensorflow.compat.v1 as tf
+
 tf.Session()
 
-sess = tf.Session(config=tf.ConfigProto(device_count = {'GPU': 1}))
+sess = tf.Session(config=tf.ConfigProto(device_count={'GPU': 1}))
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -84,7 +85,7 @@ def load_data(file_path):
         return train_data, val_data, test_data
 
 
-# train, valid, test = load_data()[0], load_data()[1], load_data()[2]
+train, valid, test = load_data(data_path)[0], load_data(data_path)[1], load_data(data_path)[2]
 
 
 def read_csv(csv_file):
@@ -103,7 +104,7 @@ def split_data(tr_data, vl_data, ts_data):
     :param tr_data: reference to train data
     :param vl_data: reference to validation data
     :param ts_data: reference to test data
-    :return: a tuple of features(x_train, x_val, x_test) and labels(y_train, y_val, y_test)
+    :return: splits data into x_train, x_val, x_test) and labels(y_train, y_val, y_test)
     """
     x_train, y_train = tr_data['features'], tr_data['labels']
     x_val, y_val = vl_data['features'], vl_data['labels']
@@ -122,29 +123,30 @@ def split_data(tr_data, vl_data, ts_data):
 
     return x_train, y_train, x_val, y_val, x_test, y_test
 
-print(len(split_data(load_data()[0], load_data()[1], load_data()[2])))
-X_train, Y_train, X_val, Y_val, X_test, Y_test = split_data(load_data(data_path)[0], load_data(data_path)[1],
-                                                            load_data(data_path)[2])
 
-# print(X_train.shape[0] == y_train.shape[0])
+X_train, Y_train, X_val, Y_val, X_test, Y_test = split_data(train, valid, test)
+
+# Before preprocessing
+# print(X_train.shape[0] == Y_train.shape[0])
 # print(X_train.shape[1:] == (img_shape[0], img_shape[1], img_shape[2]))
 
-# print(X_val.shape[0] == y_val.shape[0])
+# print(X_val.shape[0] == Y_val.shape[0])
 # print(X_val.shape[1:] == (img_shape[0], img_shape[1], img_shape[2]))
 
-# print(X_test.shape[0] == y_test.shape[0])
+# print(X_test.shape[0] == Y_test.shape[0])
 # print(X_test.shape[1:] == (img_shape[0], img_shape[1], img_shape[2]))
+print("_________________________________ Before preprocessing______________________________")
+print(f"X_train height(rows): {X_train.shape[0]}\nX_train dimensions(columns): {X_train.shape[1:]}")
+print(f"y_train : {Y_train.shape}")
 
-# print(f"\nX_train height(rows): {X_train.shape[0]}\nX_train dimensions(columns): {X_train.shape[1:]}")
-# print(f"y_train : {y_train.shape}")
+print(f"\nX_val height(rows): {X_val.shape[0]}\nX_val dimensions(columns): {X_val.shape[1:]}")
+print(f"X_val : {X_val.shape}")
 
-# print(f"\nX_val height(rows): {X_val.shape[0]}\nX_val dimensions(columns): {X_val.shape[1:]}")
-# print(f"X_val : {X_val.shape}")
+print(f"\nX_test height(rows): {X_test.shape[0]}\nX_test dimensions(columns): {X_test.shape[1:]}")
+print(f"y_test : {Y_test.shape}")
 
-# print(f"\nX_test height(rows): {X_test.shape[0]}\nX_test dimensions(columns): {X_test.shape[1:]}")
-# print(f"y_test : {y_test.shape}")
-
-# print(f"\nTotal = {X_train.shape[0] + X_test.shape[0] + X_val.shape[0]}")
+print(f"\nTotal = {X_train.shape[0] + X_test.shape[0] + X_val.shape[0]}")
+print("_________________________________ Before preprocessing______________________________")
 
 
 def plot_traffic_signs(cols, num_of_classes, graph_plt):
@@ -155,8 +157,11 @@ def plot_traffic_signs(cols, num_of_classes, graph_plt):
     :param num_of_classes: number of classes in dataset
     :return: number of samples in each class
     """
+
     samples = []
-    fig, axs = graph_plt.subplots(nrows=num_of_classes, ncols=cols, figsize=(10, 50))
+
+    # Setting the figure size - width, height
+    fig, axs = graph_plt.subplots(nrows=num_of_classes, ncols=cols, figsize=(15, 50))
     fig.tight_layout()
 
     for i in range(cols):
@@ -169,42 +174,163 @@ def plot_traffic_signs(cols, num_of_classes, graph_plt):
                 axs[j][i].set_title(str(j) + " : " + row["SignName"])
                 samples.append(len(x_selected))
 
-    return samples, graph_plt.savefig('plot/ts_plot.png')
+    return samples, fig.savefig('plot/dataset_img.png')
 
 
-num_of_samples = (plot_traffic_signs(5, 43, plt)[0])
+# num_of_samples = (plot_traffic_signs(5, 43, plt)[0])
 
 
-def plot_data_variations(graph_plt, num_of_classes):
+def plot_data_variations(graph_plt, num_of_classes, num_sam):
     """
+    :param num_sam: reference to number of samples from the plot
     :param graph_plt: reference to  a plotting library - matplotlib.pyplot
     :param num_of_classes: number of classes in the GTSRB
     :return: a plot of the num
     """
     x = [i for i in class_dict.values()]
-    graph_plt.figure(figsize=(40, 28))  # width, height
-    graph_plt.bar(x, num_of_samples)
+
+    # Setting the figure size
+    fig_save = graph_plt.figure(figsize=(40, 25))  # width, height
+    graph_plt.bar(x, num_sam)
 
     # adding text to the plot
     for i in range(0, num_of_classes):
-        graph_plt.text(i, num_of_samples[i], num_of_samples[i], ha='center', weight='bold')
+        graph_plt.text(i, num_sam[i], num_sam[i], ha='center', weight='bold')
 
     graph_plt.xticks(rotation="vertical")  # rotate the horizontal(x) axis
     # plt.bar(range(0, num_of_classes), num_of_samples)
     graph_plt.title("Distribution of classes in the training dataset", fontsize=12)
     graph_plt.xlabel("Class number", fontsize=12)
     graph_plt.ylabel("Number of images", fontsize=12)
-    return graph_plt.savefig('plot/data_variation_sns.png')
+    return fig_save.savefig('plot/data_variation.png')
 
 
-plot_data_variations(plt, 43)
+# plot_data_variations(plt, 43, plot_traffic_signs(5, 43, plt)[0])
 
 
-def unprocessed_rand_image():
-    pass
+def unprocessed_rand_image(graph_plt):
+    """
+    :param graph_plt: reference to  a plotting library - matplotlib.pyplot
+    :return: an  image
+    """
+    # Setting the figure size
+    fig_save = graph_plt.figure(figsize=(28, 28))  # width, height
+
+    # img = X_train[random.randint(0, len(X_train) - 1)]
+    img = X_train[3000]
+    graph_plt.imshow(img)
+    graph_plt.axis('off')
+    # save the plot
+    return fig_save.savefig('plot/rand_unprocessed_img.png')
 
 
-def processed_rand_image():
-    pass
+def plot_grayscale(graph_plt):
+    """
+    :param graph_plt: reference to  a plotting library - matplotlib.pyplot
+    :return: an  image
+    """
+    # Setting the figure size
+    fig_save = graph_plt.figure(figsize=(20, 20))  # width, height
 
+    # img = X_train[random.randint(0, len(X_train) - 1)]
+    img = X_train[3000]
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    graph_plt.imshow(img, cmap=graph_plt.get_cmap('gray'))
+    graph_plt.axis('off')
+    # save the plot
+    return fig_save.savefig('plot/grayscale1.png')
+
+
+def plot_equalise(graph_plt):
+    """
+    works only on grayscale(1 channel) images
+    :param graph_plt: reference to  a plotting library - matplotlib.pyplot
+    :return: an  image
+    """
+    # Setting the figure size
+    fig_save = graph_plt.figure(figsize=(28, 28))  # width, height
+    # get random image
+    # img = X_train[random.randint(0, len(X_train) - 1)]
+    img = X_train[3000]
+    # convert image to grayscale because 'equalizeHist' takes a grayscale image as an argument
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # equalises the most frequent intensity values
+    img = cv2.equalizeHist(img)
+    graph_plt.imshow(img, cmap=graph_plt.get_cmap('gray'))
+    graph_plt.axis('off')
+    # save the plot
+    return fig_save.savefig('plot/equalise.png')
+
+
+def grayscale(img):
+    """
+    Reduces the depth of an image from 3 to 1 - network will have fewer parameters when training
+    :param img: takes an image in the form of a numpy array
+    :return: an image converted to grayscale - just one channel
+    """
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    return img
+
+
+def equalise(img):
+    """
+    Spreads the distribution of the most frequent intensity values.
+    ie areas of low contrast will have a higher contrast
+    :param img: takes an image in the form of a numpy array
+    :return: an image converted to grayscale - just one channel
+    """
+    img = cv2.equalizeHist(img)
+    return img
+
+
+def normalise(img):
+    """
+    Divides the pixel values by 255 - makes the pixel values to be normalised between 0 and 1
+    :param img: takes an image as an argument
+    :return: a normalised image
+    """
+    img = img / 255
+    return img
+
+
+def preprocess(img):
+    img = grayscale(img)
+    img = equalise(img)
+    img = img / 255
+    return img
+
+
+def preprocessed_img(img_train, img_val, img_test):
+    """
+    :param img_train: reference to X_train
+    :param img_val: reference to X_val
+    :param img_test: reference to X_test
+    :return: a list of preprocessed images
+    """
+    img_train = np.array(list(map(preprocess, img_train)))
+    img_val = np.array(list(map(preprocess, img_val)))
+    img_test = np.array(list(map(preprocess, img_test)))
+    return img_train, img_val, img_test
+
+
+x_train, x_val, x_test = preprocessed_img(X_train, X_val, X_test)
+
+
+def processed_rand_image(graph_plt, process_img):
+    # Setting the figure size
+    fig_save = graph_plt.figure(figsize=(28, 28))  # width, height
+    img = process_img[3000]
+    graph_plt.imshow(img, cmap=graph_plt.get_cmap('gray'))
+    graph_plt.axis('off')
+    # save the plot
+    return fig_save.savefig('plot/processed_img.png')
+
+
+print("\n_________________________________ After preprocessing______________________________")
+print(f"\npreprocessed x_train height(rows): {x_train.shape[0]}\nX_train dimensions(columns): {x_train.shape[1:]}")
+print(f"\npreprocessed x_val height(rows): {x_val.shape[0]}\nX_val dimensions(columns): {x_val.shape[1:]}")
+print(f"\npreprocessed x_test height(rows): {x_test.shape[0]}\nX_test dimensions(columns): {x_test.shape[1:]}")
+
+print(f"\nTotal = {x_train.shape[0] + x_val.shape[0] + x_test.shape[0]}")
+print("_________________________________ After preprocessing______________________________")
 sess.close()
