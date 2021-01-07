@@ -12,7 +12,11 @@ valid_file = ""
 test_file = ""
 
 
+# ************************************************* MainWindow *********************************************************
 class MainWindow(tk.Tk):
+    """
+    This is the Main frame. It hold the other frames
+    """
 
     def __init__(self, *args, **kwargs):
         # Call to __init__ of super class
@@ -51,6 +55,9 @@ class MainWindow(tk.Tk):
         """
         frame = self.frames[current]
         frame.tkraise()
+
+
+# ************************************************* End of MainWindow **************************************************
 
 
 # ******************************************** Welcome frame ****************************************************
@@ -111,6 +118,7 @@ class WelcomeFrame(tk.Frame):
 
 # ******************************************** StartPage(Main Menu) ****************************************************
 class StartFrame(tk.Frame):
+
     def __init__(self, parent, controller):
 
         # 'parent class' is 'WelcomeWindow'
@@ -140,7 +148,7 @@ class StartFrame(tk.Frame):
         # ************************** button to the right ********************************
 
         # gui evaluation button
-        gui_eval_btn = tk.Button(self, text="Word Prediction", width=13,
+        gui_eval_btn = tk.Button(self, text="Predict Sign", width=13,
                                  command=lambda: controller.show_cur_frame(GUIFrame))
         gui_eval_btn.grid(row=0, column=1, padx=40)
         gui_eval_btn.config(bd=3, relief=tk.RAISED, font=("Arial Bold", 12), activeforeground='gray')
@@ -169,82 +177,166 @@ class StartFrame(tk.Frame):
 
         # Exit button
         # exit_btn = tk.Button(self, text="Exit", width=13, command=exit_btnclose)
-        exit_btn = tk.Button(self, text="Exit", width=13, command=lambda: controller.show_cur_frame(WelcomeFrame))
+        exit_btn = tk.Button(self, text="Back to start", width=13,
+                             command=lambda: controller.show_cur_frame(WelcomeFrame))
         exit_btn.grid(row=2, column=1, padx=40, pady=24)
-        exit_btn.config(bd=3, relief=tk.RAISED, font=("Arial Bold", 12), fg='red')
+        exit_btn.config(bd=3, relief=tk.RAISED, font=("Arial Bold", 12), fg='brown')
         exit_btn.bind("<Motion>", exit_event)
 
 
 # ***************************************** End of Start Page **********************************************************
 
-# # ******************** Events for All Buttons and Frames and shows on the status bar ***********************************
+# # ******************** Events for All Buttons and Frames and shows on the status bar *********************************
 def train_event(event):
+    """
+    displays text on the status bar
+    """
     status_bar['text'] = 'Click to train CNN model'
 
 
-def start_app(event): status_bar['text'] = 'Click to start application'
+def start_app(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Click to start application'
 
 
-def train_data_event(event): status_bar['text'] = 'Select train data'
+def train_data_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Select train data'
 
 
-def valid_data_event(event): status_bar['text'] = 'Select validation data'
+def valid_data_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Select validation data'
 
 
-def test_data_event(event): status_bar['text'] = 'Select test data'
+def test_data_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Select test data'
 
 
-def train_btn_event(event): status_bar['text'] = 'Reset  data and train'
+def train_btn_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Reset  data and train'
 
 
-def clear_event(event): status_bar['text'] = 'Clears selected file(s)'
+def clear_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Clears selected file(s)'
 
 
-def back_welcome_event(event): status_bar['text'] = 'Go back to main menu'
+def back_welcome_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Go back to main menu'
 
 
-def test_event(event): status_bar['text'] = 'Run the system and test its accuracy'
+def test_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Run the system and test its accuracy'
 
 
-def file_test_text_event(event): status_bar['text'] = 'Select text file for testing'
+def file_test_text_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Select text file for testing'
 
 
-def file_test_values_event(event): status_bar['text'] = 'Select the value file for testing'
+def file_test_values_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Select the value file for testing'
 
 
-def test_btn_event(event): status_bar['text'] = 'Run test on selected files'
+def test_btn_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Run test on selected files'
 
 
-def eval_text_event(event): status_bar['text'] = "Evaluate input file that hasn't been pre-labelled"
+def eval_text_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = "Evaluate input file that hasn't been pre-labelled"
 
 
-def gui_eval_event(event): status_bar['text'] = 'Click to get emotion from text'
+def gui_eval_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Click to get emotion from text'
 
 
-def predict_event(event): status_bar['text'] = 'Predicts the emotion from the inputted text'
+def predict_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Predicts the emotion from the inputted text'
 
 
-def clear_predict_event(event): status_bar['text'] = 'Clears the text'
+def clear_predict_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Clears the text'
 
 
-def file_eval_text_event(event): status_bar['text'] = 'Select a text file to evaluate'
+def file_eval_text_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Select a text file to evaluate'
 
 
-def eval_event(event): status_bar['text'] = 'Evaluates a file that hasn\'t been pre-labelled'
+def eval_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Evaluates a file that hasn\'t been pre-labelled'
 
 
-def info_event(event): status_bar['text'] = 'For more information'
+def info_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'For more information'
 
 
-def exit_event(event): status_bar['text'] = 'Close application'
+def exit_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Close application'
 
 
-def self_event(event): status_bar['text'] = 'Click a button to continue'
+def self_event(event):
+    """
+    displays text on the status bar
+    """
+    status_bar['text'] = 'Click a button to continue'
 
 
-# # **************************************************** End of mouse movements ******************************************
+# # **************************************************** End of mouse movements ****************************************
 
-# *************************************************** load data for training *************************************
+# ******************************************************* load data for training ***************************************
 def load_train_data():
     global train_file
     current_path = "./data/"
@@ -614,7 +706,6 @@ status_bar_frame = tk.Frame(container, bd=1, relief=tk.SUNKEN)
 status_bar_frame.grid(row=4, column=0, columnspan=6, sticky="we")
 
 status_bar = tk.Label(status_bar_frame, text="Welcome", bg="#dfdfdf", anchor=tk.W)
-print(status_bar)
 
 status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 # status_bar.config(anchor=tk.W, font=("Times", 11))
