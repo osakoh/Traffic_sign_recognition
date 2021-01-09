@@ -4,8 +4,12 @@ import random
 import pickle
 import pandas as pd
 import cv2
+import tensorflow.compat.v1 as tf
 
 from keras.utils.np_utils import to_categorical
+
+# Clears the default graph stack and resets the global default graph.
+tf.reset_default_graph()
 
 # ensures that the random numbers are predictable. Resetting the seed everytime makes the random numbers predictable
 # If this isn't done, different results will be gotten

@@ -212,4 +212,9 @@ plt.imshow(img, cmap=plt.get_cmap('gray'))
 print(img.shape)
 img = img.reshape(1, 32, 32, 1)
 
+# pred = my_model.predict_classes(img)
+# print(pred + 1)
+# sign = class_dict[pred + 1]  # +1 because of the zero index
+# print(sign)
+
 print("predicted sign: " + str(model.predict_classes(img)))
