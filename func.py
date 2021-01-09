@@ -1,25 +1,17 @@
-import tensorflow.compat.v1 as tf
-
-tf.Session()
-
-sess = tf.Session(config=tf.ConfigProto(device_count={'GPU': 1}))
-
 import numpy as np
 import matplotlib.pyplot as plt
 import random
 import pickle
 import pandas as pd
-import seaborn as sns
 import cv2
 
-from keras.models import Sequential
-from keras.optimizers import Adam
-from keras.layers import Dense
-from keras.layers import Flatten, Dropout
 from keras.utils.np_utils import to_categorical
-from keras.layers.convolutional import Conv2D, MaxPooling2D
-from keras.callbacks import LearningRateScheduler, ModelCheckpoint
 
+# ensures that the random numbers are predictable. Resetting the seed everytime makes the random numbers predictable
+# If this isn't done, different results will be gotten
+np.random.seed(0)
+
+# image shape
 img_shape = (32, 32, 3)
 data_path = "data"
 class_dict = {
@@ -126,6 +118,12 @@ def split_data(tr_data, vl_data, ts_data):
 
 X_train, Y_train, X_val, Y_val, X_test, Y_test = split_data(train, valid, test)
 
+
+# print normalise x_train
+# print("\n___________________________________ Before normalisation _________________________________")
+# print(X_train)
+# print("___________________________________ Before normalisation  _________________________________")
+
 # Before preprocessing
 # print(X_train.shape[0] == Y_train.shape[0])
 # print(X_train.shape[1:] == (img_shape[0], img_shape[1], img_shape[2]))
@@ -135,18 +133,18 @@ X_train, Y_train, X_val, Y_val, X_test, Y_test = split_data(train, valid, test)
 
 # print(X_test.shape[0] == Y_test.shape[0])
 # print(X_test.shape[1:] == (img_shape[0], img_shape[1], img_shape[2]))
-print("_________________________________ Before preprocessing______________________________")
-print(f"X_train height(rows): {X_train.shape[0]}\nX_train dimensions(columns): {X_train.shape[1:]}")
-print(f"y_train : {Y_train.shape}")
-
-print(f"\nX_val height(rows): {X_val.shape[0]}\nX_val dimensions(columns): {X_val.shape[1:]}")
-print(f"X_val : {X_val.shape}")
-
-print(f"\nX_test height(rows): {X_test.shape[0]}\nX_test dimensions(columns): {X_test.shape[1:]}")
-print(f"y_test : {Y_test.shape}")
-
-print(f"\nTotal = {X_train.shape[0] + X_test.shape[0] + X_val.shape[0]}")
-print("_________________________________ Before preprocessing______________________________")
+# print("_________________________________ Before preprocessing______________________________")
+# print(f"X_train height(rows): {X_train.shape[0]}\nX_train dimensions(columns): {X_train.shape[1:]}")
+# print(f"y_train : {Y_train.shape}")
+#
+# print(f"\nX_val height(rows): {X_val.shape[0]}\nX_val dimensions(columns): {X_val.shape[1:]}")
+# print(f"X_val : {X_val.shape}")
+#
+# print(f"\nX_test height(rows): {X_test.shape[0]}\nX_test dimensions(columns): {X_test.shape[1:]}")
+# print(f"y_test : {Y_test.shape}")
+#
+# print(f"\nTotal = {X_train.shape[0] + X_test.shape[0] + X_val.shape[0]}")
+# print("_________________________________ Before preprocessing______________________________")
 
 
 def plot_traffic_signs(cols, num_of_classes, graph_plt):
@@ -187,6 +185,7 @@ def plot_data_variations(graph_plt, num_of_classes, num_sam):
     :param num_of_classes: number of classes in the GTSRB
     :return: a plot of the num
     """
+    # list comprehension
     x = [i for i in class_dict.values()]
 
     # Setting the figure size
@@ -207,10 +206,36 @@ def plot_data_variations(graph_plt, num_of_classes, num_sam):
 
 # plot_data_variations(plt, 43, plot_traffic_signs(5, 43, plt)[0])
 
+def plot_histogram(graph_plt, img_train):
+    """
+    :param img_train: reference to X_train
+    :param graph_plt: reference to  a plotting library - matplotlib.pyplot
+    :return: the histogram of an image
+    """
+    # Setting the figure size
+    fig_save = graph_plt.figure(figsize=(28, 28))  # width, height
+
+    # extract image
+    img = img_train[3000]
+    # cv2.calcHist(images,channels,mask,histSize,ranges)
+    hist = cv2.calcHist([img], [0], None, [256], [0, 256])
+
+    graph_plt.figure()
+    graph_plt.title("Grayscale Histogram of Image", fontsize=12)
+    graph_plt.xlabel("Bins", fontsize=12)
+    graph_plt.ylabel("Number of of Pixels", fontsize=12)
+    graph_plt.plot(hist)
+    graph_plt.xlim([0, 256])
+    return fig_save.savefig('plot/equalised_processed.png')
+    # return graph_plt.savefig('plot/hist_unprocessed.png')
+
+
+# plot_histogram(plt, X_train)
+
 
 def unprocessed_rand_image(graph_plt):
     """
-    :param graph_plt: reference to  a plotting library - matplotlib.pyplot
+    Histogram shows the distribution of pixel intensities (grayscale and coloured)
     :return: an  image
     """
     # Setting the figure size
@@ -221,7 +246,10 @@ def unprocessed_rand_image(graph_plt):
     graph_plt.imshow(img)
     graph_plt.axis('off')
     # save the plot
-    return fig_save.savefig('plot/rand_unprocessed_img.png')
+    return fig_save.savefig('plot/unprocessed_img.png')
+
+
+# unprocessed_rand_image(plt)
 
 
 def plot_grayscale(graph_plt):
@@ -238,29 +266,33 @@ def plot_grayscale(graph_plt):
     graph_plt.imshow(img, cmap=graph_plt.get_cmap('gray'))
     graph_plt.axis('off')
     # save the plot
-    return fig_save.savefig('plot/grayscale1.png')
+    return fig_save.savefig('plot/grayscale.png')
 
 
-def plot_equalise(graph_plt):
+# plot_grayscale(plt)
+
+
+def plot_processed_histogram(graph_plt, img_file):
     """
-    works only on grayscale(1 channel) images
     :param graph_plt: reference to  a plotting library - matplotlib.pyplot
-    :return: an  image
+    :param img_file: image file
+    :return: histogram plot
     """
     # Setting the figure size
-    fig_save = graph_plt.figure(figsize=(28, 28))  # width, height
-    # get random image
-    # img = X_train[random.randint(0, len(X_train) - 1)]
-    img = X_train[3000]
-    # convert image to grayscale because 'equalizeHist' takes a grayscale image as an argument
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # equalises the most frequent intensity values
-    img = cv2.equalizeHist(img)
-    graph_plt.imshow(img, cmap=graph_plt.get_cmap('gray'))
-    graph_plt.axis('off')
-    # save the plot
-    return fig_save.savefig('plot/equalise.png')
+    fig_save = graph_plt.figure(figsize=(10, 8))  # width, height
+    img = cv2.imread(img_file, 0)
+    hist = cv2.calcHist([img], [0], None, [256], [0, 256])
 
+    graph_plt.title("Grayscale Histogram of Image - Processed", fontsize=12)
+    graph_plt.xlabel("Bins", fontsize=12)
+    graph_plt.ylabel("Number of of Pixels", fontsize=12)
+    graph_plt.plot(hist)
+
+    graph_plt.xlim([0, 256])
+    return fig_save.savefig('plot/equalised_hist.png')
+
+
+# plot_processed_histogram(plt, 'plot/equalise.png')
 
 def grayscale(img):
     """
@@ -276,7 +308,7 @@ def equalise(img):
     """
     Spreads the distribution of the most frequent intensity values.
     ie areas of low contrast will have a higher contrast
-    :param img: takes an image in the form of a numpy array
+    :param img: takes a grayscale image in the form of a numpy array
     :return: an image converted to grayscale - just one channel
     """
     img = cv2.equalizeHist(img)
@@ -316,6 +348,12 @@ def preprocessed_img(img_train, img_val, img_test):
 x_train, x_val, x_test = preprocessed_img(X_train, X_val, X_test)
 
 
+# print normalise x_train
+# print("\n___________________________________ After normalisation  _________________________________")
+# print(x_train)
+# print("___________________________________ After normalisation _________________________________")
+
+
 def processed_rand_image(graph_plt, process_img):
     # Setting the figure size
     fig_save = graph_plt.figure(figsize=(28, 28))  # width, height
@@ -326,11 +364,81 @@ def processed_rand_image(graph_plt, process_img):
     return fig_save.savefig('plot/processed_img.png')
 
 
-print("\n_________________________________ After preprocessing______________________________")
-print(f"\npreprocessed x_train height(rows): {x_train.shape[0]}\nX_train dimensions(columns): {x_train.shape[1:]}")
-print(f"\npreprocessed x_val height(rows): {x_val.shape[0]}\nX_val dimensions(columns): {x_val.shape[1:]}")
-print(f"\npreprocessed x_test height(rows): {x_test.shape[0]}\nX_test dimensions(columns): {x_test.shape[1:]}")
+# processed_rand_image(plt, x_train)
 
-print(f"\nTotal = {x_train.shape[0] + x_val.shape[0] + x_test.shape[0]}")
-print("_________________________________ After preprocessing______________________________")
-sess.close()
+# print("\n_________________________________ After preprocessing______________________________")
+# print(f"\npreprocessed x_train height(rows): {x_train.shape[0]}\nx_train dimensions(columns): {x_train.shape[1:]}")
+# print(f"\npreprocessed x_val height(rows): {x_val.shape[0]}\nx_val dimensions(columns): {x_val.shape[1:]}")
+# print(f"\npreprocessed x_test height(rows): {x_test.shape[0]}\nx_test dimensions(columns): {x_test.shape[1:]}")
+# print(f"\nTotal = {x_train.shape[0] + x_val.shape[0] + x_test.shape[0]}")
+# print("_________________________________ After preprocessing______________________________")
+
+
+# One-hot encoding
+"""
+Carried out only the labels. It is the process of converting the labels into a vector. From the name, in a vector
+only one element is hot and the rest are cold. That is just one element has a value of 1 while the rest are zero. 
+The hot element (1) represents the location of the label in a vector and other available locations.
+For example, the GTSRB has 43 labels (0 to 42). The vector will have 43 values, and the actual label will be one as
+shown in the table below.
+ClassId 	SignName                               One-hot encoded values
+    0  "Speed limit (20km/h)"                   1 0 0 0 0 0 0 0 0 0 .... 0 0 0 0 0
+    1 "Speed limit (30km/h)"                   0 1 0 0 0 0 0 0 0 0 .... 0 0 0 0 0
+    2 "Speed limit (50km/h)"                   0 0 1 0 0 0 0 0 0 0 .... 0 0 0 0 0
+    3 "Speed limit (60km/h)"                   0 0 0 1 0 0 0 0 0 0 .... 0 0 0 0 0
+    4 "Speed limit (70km/h)"                   0 0 0 0 1 0 0 0 0 0 .... 0 0 0 0 0
+    .
+    .
+    39 "Keep Left"                              0 0 0 0 0 0 0 0 0 0 .... 0 1 0 0 0
+    40 "Roundabout mandatory"                   0 0 0 0 0 0 0 0 0 0 .... 0 0 1 0 0
+    41 "End of no passing"                      0 0 0 0 0 0 0 0 0 0 .... 0 0 0 1 0
+    42 "End of no passing veh over 3.5 tons"    0 0 0 0 0 0 0 0 0 0 .... 0 0 0 0 1
+"""
+
+
+# print("\n____________________ Before Encoding ______________________________")
+# print(f"Training label: {Y_train}")
+# print(f"Val label: {Y_val}")
+# print(f"Test label: {Y_test}")
+# print("____________________ Before Encoding ______________________________")
+
+
+def one_hot_encode(train_label, val_label, test_label, num_of_classes):
+    """
+    One-hot encodes each of the labels
+    :param train_label: reference to the train label
+    :param val_label: reference to the validation label
+    :param test_label: reference to the test label
+    :param num_of_classes: reference to the number of classes present in the dataset
+    :return: labels that are one-hot encoded
+    """
+    train_label = to_categorical(train_label, num_of_classes)
+    val_label = to_categorical(val_label, num_of_classes)
+    test_label = to_categorical(test_label, num_of_classes)
+    return train_label, val_label, test_label
+
+
+y_train, y_val, y_test = one_hot_encode(Y_train, Y_val, Y_test, 43)
+
+
+# print("\n____________________ After Encoding ______________________________")
+# print(f"Training label: {y_train}")
+# print(f"Val label: {y_val}")
+# print(f"Test label: {y_test}")
+# print("____________________ After Encoding ______________________________")
+
+def channel_depth(train_data, val_data, test_data):
+    """
+    this adds a depth of each of the training data
+    :param train_data: reference to the train data
+    :param val_data: reference to the train data
+    :param test_data: reference to the train data
+    :return: training data with a depth of one
+    """
+    train_data = train_data.reshape(train_data.shape[0], train_data.shape[1], train_data.shape[2], 1)
+    val_data = val_data.reshape(val_data.shape[0], val_data.shape[1], val_data.shape[2], 1)
+    test_data = test_data.reshape(test_data.shape[0], test_data.shape[1], test_data.shape[2], 1)
+    return train_data, val_data, test_data
+
+
+x_train, x_val, x_test = channel_depth(x_train, x_val, x_test)

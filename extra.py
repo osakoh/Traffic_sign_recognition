@@ -1,8 +1,3 @@
-import tensorflow.compat.v1 as tf
-tf.Session()
-
-sess = tf.Session(config=tf.ConfigProto(device_count = {'GPU': 1}))
-
 import numpy as np
 import matplotlib.pyplot as plt
 import keras
@@ -17,8 +12,16 @@ import pickle
 import pandas as pd
 import cv2
 
-
 from keras.callbacks import LearningRateScheduler, ModelCheckpoint
+
+# import tensorflow as tf
+import tensorflow.compat.v1 as tf
+
+tf.disable_v2_behavior()
+
+# start Tensorflow-gpu session
+gpu_opts = tf.compat.v1.GPUOptions(per_process_gpu_memory_fraction=1)
+sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_opts))
 
 np.random.seed(0)
 # TODO: Implement load the data here.
@@ -173,16 +176,20 @@ history = model.fit_generator(datagen.flow(X_train, y_train, batch_size=50),
                               steps_per_epoch=2000,
                               epochs=10,
                               validation_data=(X_val, y_val), shuffle=1)
-plt.plot(history.history['loss'])
-plt.plot(history.history['val_loss'])
+plt.plot(history.my_model['loss'])
+plt.plot(history.my_model['val_loss'])
 plt.title('Loss')
 plt.xlabel('epoch')
 
-plt.plot(history.history['accuracy'])
-plt.plot(history.history['val_accuracy'])
+plt.plot(history.my_model['accuracy'])
+plt.plot(history.my_model['val_accuracy'])
 plt.legend(['training', 'test'])
 plt.title('Accuracy')
 plt.xlabel('epoch')
+
+# end Tensorflow-gpu session
+sess.close()
+print(sess)
 
 # TODO: Evaluate model on test data
 score = model.evaluate(X_test, y_test, verbose=0)
