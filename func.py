@@ -10,6 +10,27 @@ from keras.utils.np_utils import to_categorical
 
 # Clears the default graph stack and resets the global default graph.
 tf.reset_default_graph()
+# tf.disable_v2_behavior()
+
+# start Tensorflow-gpu session
+gpu_opts = tf.compat.v1.GPUOptions(per_process_gpu_memory_fraction=0.2)
+sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_opts))
+
+# # Function call stack: keras_scratch_graph Error
+# gpus = tf.config.experimental.list_physical_devices('GPU')
+# if gpus:
+#     try:
+#         # Restrict TensorFlow to only use the fourth GPU
+#         tf.config.experimental.set_visible_devices(gpus[0], 'GPU')
+#
+#         # Currently, memory growth needs to be the same across GPUs
+#         for gpu in gpus:
+#             tf.config.experimental.set_memory_growth(gpu, True)
+#         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+#         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+#     except RuntimeError as e:
+#         # Memory growth must be set before GPUs have been initialized
+#         print(e)
 
 # ensures that the random numbers are predictable. Resetting the seed everytime makes the random numbers predictable
 # If this isn't done, different results will be gotten
@@ -120,6 +141,7 @@ def split_data(tr_data, vl_data, ts_data):
     return x_train, y_train, x_val, y_val, x_test, y_test
 
 
+# print(len(split_data(train, valid, test)))
 X_train, Y_train, X_val, Y_val, X_test, Y_test = split_data(train, valid, test)
 
 
@@ -163,7 +185,7 @@ def plot_traffic_signs(cols, num_of_classes, graph_plt):
     samples = []
 
     # Setting the figure size - width, height
-    fig, axs = graph_plt.subplots(nrows=num_of_classes, ncols=cols, figsize=(15, 50))
+    fig, axs = graph_plt.subplots(nrows=num_of_classes, ncols=cols, figsize=(10, 30))
     fig.tight_layout()
 
     for i in range(cols):
@@ -176,8 +198,7 @@ def plot_traffic_signs(cols, num_of_classes, graph_plt):
                 axs[j][i].set_title(str(j) + " : " + row["SignName"])
                 samples.append(len(x_selected))
 
-    return samples, fig.savefig('plot/dataset_img.png')
-
+    return samples, fig.savefig('plot/dataset_img1.png')
 
 # num_of_samples = (plot_traffic_signs(5, 43, plt)[0])
 
@@ -193,7 +214,7 @@ def plot_data_variations(graph_plt, num_of_classes, num_sam):
     x = [i for i in class_dict.values()]
 
     # Setting the figure size
-    fig_save = graph_plt.figure(figsize=(40, 25))  # width, height
+    fig_save = graph_plt.figure(figsize=(25, 28))  # width, height
     graph_plt.bar(x, num_sam)
 
     # adding text to the plot
@@ -205,10 +226,11 @@ def plot_data_variations(graph_plt, num_of_classes, num_sam):
     graph_plt.title("Distribution of classes in the training dataset", fontsize=12)
     graph_plt.xlabel("Class number", fontsize=12)
     graph_plt.ylabel("Number of images", fontsize=12)
-    return fig_save.savefig('plot/data_variation.png')
+    return fig_save.savefig('plot/data_variation1.png')
 
 
 # plot_data_variations(plt, 43, plot_traffic_signs(5, 43, plt)[0])
+
 
 def plot_histogram(graph_plt, img_train):
     """
@@ -336,7 +358,7 @@ def preprocess(img):
     return img
 
 
-def preprocessed_img(img_train, img_val, img_test):
+def preprocess_train_samples(img_train, img_val, img_test):
     """
     :param img_train: reference to X_train
     :param img_val: reference to X_val
@@ -349,7 +371,7 @@ def preprocessed_img(img_train, img_val, img_test):
     return img_train, img_val, img_test
 
 
-x_train, x_val, x_test = preprocessed_img(X_train, X_val, X_test)
+x_train, x_val, x_test = preprocess_train_samples(X_train, X_val, X_test)
 
 
 # print normalise x_train
@@ -407,7 +429,7 @@ ClassId 	SignName                               One-hot encoded values
 # print("____________________ Before Encoding ______________________________")
 
 
-def one_hot_encode(train_label, val_label, test_label, num_of_classes):
+def one_hot_encode_label(train_label, val_label, test_label, num_of_classes):
     """
     One-hot encodes each of the labels
     :param train_label: reference to the train label
@@ -422,7 +444,7 @@ def one_hot_encode(train_label, val_label, test_label, num_of_classes):
     return train_label, val_label, test_label
 
 
-y_train, y_val, y_test = one_hot_encode(Y_train, Y_val, Y_test, 43)
+y_train, y_val, y_test = one_hot_encode_label(Y_train, Y_val, Y_test, 43)
 
 
 # print("\n____________________ After Encoding ______________________________")
@@ -431,7 +453,7 @@ y_train, y_val, y_test = one_hot_encode(Y_train, Y_val, Y_test, 43)
 # print(f"Test label: {y_test}")
 # print("____________________ After Encoding ______________________________")
 
-def channel_depth(train_data, val_data, test_data):
+def add_depth_train_samples(train_data, val_data, test_data):
     """
     this adds a depth of each of the training data
     :param train_data: reference to the train data
@@ -445,4 +467,4 @@ def channel_depth(train_data, val_data, test_data):
     return train_data, val_data, test_data
 
 
-x_train, x_val, x_test = channel_depth(x_train, x_val, x_test)
+x_train, x_val, x_test = add_depth_train_samples(x_train, x_val, x_test)

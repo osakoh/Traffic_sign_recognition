@@ -1,31 +1,17 @@
-import tensorflow.compat.v1 as tf
 import pickle
 import requests
 import numpy as np
 import matplotlib.pyplot as plt
+import itertools
+import sys
 import cv2
-
+import glob
+from keras.models import load_model
 from sklearn import metrics
-from sklearn.metrics import confusion_matrix, accuracy_score
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
 from PIL import Image
 
-from func import class_dict, y_train, y_val, y_test
-
-# Function call stack: keras_scratch_graph Error
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-    try:
-        # Restrict TensorFlow to only use the fourth GPU
-        tf.config.experimental.set_visible_devices(gpus[0], 'GPU')
-
-        # Currently, memory growth needs to be the same across GPUs
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-    except RuntimeError as e:
-        # Memory growth must be set before GPUs have been initialized
-        print(e)
+from func import class_dict, y_train, y_val, y_test, x_train, x_val, x_test
 
 url = ['https://c8.alamy.com/comp/G667W0/road-sign-speed-limit-30-kmh-zone-passau-bavaria-germany-G667W0.jpg',
        'https://c8.alamy.com/comp/A0RX23/cars-and-automobiles-must-turn-left-ahead-sign-A0RX23.jpg',
@@ -78,13 +64,13 @@ traffic_signs = [
     "End of no passing",
     "End of no passing veh over 3.5 tons"]
 
-r = requests.get(url[3], stream=True)
-img = Image.open(r.raw)
+
+# r = requests.get(url[3], stream=True)
+# img = Image.open(r.raw)
 # plt.imshow(img, cmap=plt.get_cmap('gray'))
 
-pickle_in = open("model/model_trained_10_epoch.p", "rb")
-model_load = pickle.load(pickle_in)
-
+# pickle_in = open("model/model_trained_10_epoch.p", "rb")
+# model_load = pickle.load(pickle_in)
 
 def pre_processing(img):
     """
@@ -97,18 +83,88 @@ def pre_processing(img):
     return img
 
 
-def predict_img(img, graph_plt):
+def predict_img(img, the_model, threshold):
+    """
+    predict(): to get the probability and predict_classes(),to get the label
+    :param threshold: the minimum value that must be reached to predict an image
+    :param the_model: saved trained model
+    :param img: img to test
+    """
     img = np.asarray(img)
     img = cv2.resize(img, (32, 32))
     img = pre_processing(img)
-    graph_plt.show()
     img = img.reshape(1, 32, 32, 1)
 
-    pred = (model_load.predict_classes(img))  # first predict the class ID
-    actual = model_load.predict(img)
-    print(f"\npredicted sign: {class_dict[int(pred)]}-{int(pred)} | actual sign: {actual}")
+    # predicted class
+    pred = the_model.predict_classes(img)  # first predict the class ID
+    prob_val = np.amax(pred)  # returns the maximum element in an array/list
+
+    if prob_val > threshold:
+        print(f"\nPredicted sign: {class_dict[int(pred)]} Class: {int(pred)}\n"
+              f"Actual sign: {class_dict[int(prob_val)]} Class: {prob_val}")
+
+
+# TODO: load saved model
+this_model = load_model('model/final_no_callback.h5')
+print("\nModel Loaded successfully\n")
 
 img_path = Image.open(r'pred_test/cars-and-automobiles-must-turn-left-ahead-sign.jpg')
-predict_img(img, plt)
+images = [cv2.imread(file) for file in glob.glob("pred_test/*.jpg")]
+# print(len(images))
+
+# TODO: test images
+# for img in images:
+#     predict_img(img, this_model, 0.90)
+
+# TODO: view convolutional filter outputs
+# layer = [layer for layer in this_model.layers]
+# print(type(layer))  # 13 layers in total
+# print(len(layer))  # shows the number of layers in the model
+# filters, biases = this_model.layers[1].get_weights()
 
 
+# print(layer[1].name, filters.shape)
+
+# for i in range(len(layer)):
+#     print(layer[i].name)
+
+
+# activation_model = models.Model(input_shape=this_model.input, outputs= layer_outputs)
+# activations = activation_model.predict(img_path)
+# print(activations)
+
+y_pred = this_model.predict(x_test)
+# print(type(y_pred))
+# np.set_printoptions(threshold=sys.maxsize)
+y_pred = np.argmax(y_pred, axis=1)
+y_test = np.argmax(y_test, axis=1)
+cm = confusion_matrix(y_test, y_pred)
+
+# TODO: view accuracy report
+pred = this_model.predict_classes(x_test)
+print(classification_report(y_test, pred, target_names=traffic_signs))
+
+
+# TODO: plot confusion matrix
+# classes = 43
+# confusion_matrix = confusion_matrix(y_pred, y_test)
+#
+# plt.figure(figsize=(25, 25))
+# plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+# tick_marks = np.arange(classes)
+#
+# plt.xticks(range(classes), range(classes))
+# plt.yticks(range(classes), range(classes))
+#
+#
+# plt.xticks(rotation=90)
+# plt.xticks(fontsize=16)
+# plt.yticks(fontsize=16)
+# plt.xlabel('Predicted', fontsize=24)
+# plt.ylabel('True', fontsize=24)
+# thresh = cm.max() / 2.
+# for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+#     plt.text(j, i, cm[i, j], horizontalalignment="center",
+#              color="white" if cm[i, j] > thresh else "black")
+# plt.savefig('plot/confusion_matrix_early_stopping.png')
+# plt.show()

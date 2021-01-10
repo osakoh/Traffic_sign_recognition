@@ -218,3 +218,28 @@ img = img.reshape(1, 32, 32, 1)
 # print(sign)
 
 print("predicted sign: " + str(model.predict_classes(img)))
+
+
+# print("\n___________________________________ After reshape _______________________________")
+# print(f"shape of x_train: {x_train.shape}")
+# print(f"shape of x_val: {x_val.shape}")
+# print(f"shape of x_val{x_test.shape}")
+# # print(f"Total = {x_train.shape[0] + x_val.shape[0] + x_test.shape[0]}")
+# print("___________________________________ After reshape _______________________________")
+
+
+# print("\n____________________ After Encoding ______________________________")
+# print(f"Training label: {y_train}")
+# print(f"Val label: {y_val}")
+# print(f"Test label: {y_test}")
+# print("____________________ After Encoding ______________________________")
+
+"""
+model.add(Conv2D(filters=16, kernel_size=(3, 3), activation='relu',    input_shape=x_train.shape[1:], padding="same"))
+model.add(Conv2D(filters=16, kernel_size=(3, 3), activation='relu',    input_shape=x_train.shape[1:], padding="same"))
+model.add(BatchNormalization())model.add(AveragePooling2D())model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu',    padding="same"))
+model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu',    padding="same"))model.add(BatchNormalization())
+model.add(AveragePooling2D())model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu',    padding="same"))
+model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu',    padding="same"))model.add(BatchNormalization())
+model.add(AveragePooling2D())
+"""
