@@ -13,12 +13,7 @@ from PIL import Image
 
 from func import class_dict, y_train, y_val, y_test, x_train, x_val, x_test
 
-url = ['https://c8.alamy.com/comp/G667W0/road-sign-speed-limit-30-kmh-zone-passau-bavaria-germany-G667W0.jpg',
-       'https://c8.alamy.com/comp/A0RX23/cars-and-automobiles-must-turn-left-ahead-sign-A0RX23.jpg',
-       'https://previews.123rf.com/images/bwylezich/bwylezich1608/bwylezich160800375/64914157-german-road-sign'
-       '-slippery-road.jpg',
-       'https://previews.123rf.com/images/pejo/pejo0907/pejo090700003/5155701-german-traffic-sign-no-205-give-way.jpg',
-       'https://c8.alamy.com/comp/J2MRAJ/german-road-sign-bicycles-crossing-J2MRAJ.jpg']
+url = []
 traffic_signs = [
     "Speed limit (20km/h)",
     "Speed limit (30km/h)",
@@ -65,7 +60,8 @@ traffic_signs = [
     "End of no passing veh over 3.5 tons"]
 
 
-# r = requests.get(url[3], stream=True)
+# TODO: testing using request
+# r = requests.get(url, stream=True)
 # img = Image.open(r.raw)
 # plt.imshow(img, cmap=plt.get_cmap('gray'))
 
@@ -113,8 +109,8 @@ images = [cv2.imread(file) for file in glob.glob("pred_test/*.jpg")]
 # print(len(images))
 
 # TODO: test images
-# for img in images:
-#     predict_img(img, this_model, 0.90)
+for img in images:
+    predict_img(img, this_model, 0.90)
 
 # TODO: view convolutional filter outputs
 # layer = [layer for layer in this_model.layers]
@@ -143,7 +139,6 @@ cm = confusion_matrix(y_test, y_pred)
 # TODO: view accuracy report
 pred = this_model.predict_classes(x_test)
 print(classification_report(y_test, pred, target_names=traffic_signs))
-
 
 # TODO: plot confusion matrix
 # classes = 43

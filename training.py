@@ -5,14 +5,16 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import graphviz
 # import tensorflow.keras.backend as K
 
 from keras.models import Sequential
+from tensorflow.keras.utils import plot_model
 from keras.optimizers import Adam
 from keras.layers import Dense
 from keras.layers import Flatten, Dropout
 from keras.layers.convolutional import Conv2D, MaxPooling2D
-# from keras.models import load_model
+from keras.models import load_model
 from keras.preprocessing.image import ImageDataGenerator  # for data augmentation
 from tensorflow.keras import layers
 
@@ -55,7 +57,7 @@ def cnn_model():
 
 
 my_model = cnn_model()
-my_model.summary()
+# my_model.summary()
 
 # TODO: data augmentation
 data_gen = ImageDataGenerator(width_shift_range=0.1, height_shift_range=0.1,
@@ -71,7 +73,7 @@ data_gen = ImageDataGenerator(width_shift_range=0.1, height_shift_range=0.1,
 # total number of training examples in a single batch. Meaning it will take about 100 iterations to complete
 # 1 epoch since there is about 35000 samples in the training set
 train_batch_size = 350
-gen_batch_size = 200  # generates 100 additional images along with their labels during training
+gen_batch_size = 200  # generates 200 additional images along with their labels during training
 # epoch: when the complete dataset is passed forward and backward through the CNN just once
 no_of_epochs = 20  # no of times the dataset will go through the CNN
 epoch_steps = 2000
@@ -85,6 +87,11 @@ x_batch, y_batch = next(batches)
 
 
 def plot_batch(graph_plt):
+    """
+    Plots a graph of 15 augmented images
+    :param graph_plt: reference to  a plotting library - matplotlib.pyplot
+    :return:
+    """
     fig, axs = graph_plt.subplots(1, 15, figsize=(20, 3))
     fig.tight_layout()  # so the axis doesn't overlap
 
@@ -98,6 +105,7 @@ def plot_batch(graph_plt):
 # history = my_model.fit(x_train, y_train, epochs=no_of_epochs,
 #                        batch_size=train_batch_size, verbose=1,
 #                        validation_data=(x_val, y_val), shuffle=1)
+
 
 # TODO: train using data augmentation
 # history = my_model.fit_generator(data_gen.flow(x_train, y_train, batch_size=50),
@@ -154,11 +162,18 @@ def loss_plot(graph_plt, hist):
 
 
 # TODO:evaluate using test images
-score = my_model.evaluate(x_test, y_test, verbose=0)
+# score = my_model.evaluate(x_test, y_test, verbose=0)
 # print(f"Test Score (Loss) = {score[0]}")
 # print(f"Test Accuracy = {score[1] * 100}")
 
 # TODO: save model
 # early_stopping
-# my_model.save('model/early_stopping_blabla.h5')
+# my_model.save('model/early_stopping.h5')
 # print("Saved successful")
+
+# TODO: load saved model to visualise network architecture
+# this_model = load_model('model/early_stopping.h5')
+# print("\nModel Loaded successfully\n")
+
+# TODO: visualise network architecture
+# plot_model(this_model, to_file='model/early_stopping.png', show_shapes=True)
