@@ -78,7 +78,7 @@ gen_batch_size = 200  # generates 200 additional images along with their labels 
 no_of_epochs = 20  # no of times the dataset will go through the CNN
 epoch_steps = 2000
 
-stop = EarlyStopping(monitor='val_loss', min_delta=0.0004, patience=3, verbose=1)
+stop = EarlyStopping(monitor='val_loss', min_delta=0.0004, patience=4, verbose=1)
 
 # TODO: call to image generator(iterator); that is it only returns batches of images when needed
 data_gen.fit(x_train)
@@ -101,13 +101,13 @@ def plot_batch(graph_plt):
     return fig.savefig('plot/aug_img.png')
 
 
-# TODO: train without data augmentation
+# TODO: train without data augmentation: takes about 1:30mins
 # history = my_model.fit(x_train, y_train, epochs=no_of_epochs,
 #                        batch_size=train_batch_size, verbose=1,
-#                        validation_data=(x_val, y_val), shuffle=1)
+#                        validation_data=(x_val, y_val), shuffle=1, callbacks=[stop])
 
 
-# TODO: train using data augmentation
+# TODO: train using data augmentation: takes about 10mins
 # history = my_model.fit_generator(data_gen.flow(x_train, y_train, batch_size=50),
 #                                  steps_per_epoch=epoch_steps, epochs=no_of_epochs,
 #                                  validation_data=(x_val, y_val), shuffle=1, callbacks=[stop])
@@ -162,9 +162,9 @@ def loss_plot(graph_plt, hist):
 
 
 # TODO:evaluate using test images
-# score = my_model.evaluate(x_test, y_test, verbose=0)
-# print(f"Test Score (Loss) = {score[0]}")
-# print(f"Test Accuracy = {score[1] * 100}")
+score = my_model.evaluate(x_test, y_test, verbose=0)
+print(f"Test Score (Loss) = {score[0]}")
+print(f"Test Accuracy = {score[1] * 100}")
 
 # TODO: save model
 # early_stopping

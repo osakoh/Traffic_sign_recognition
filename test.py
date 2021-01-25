@@ -6,10 +6,13 @@ import itertools
 import sys
 import cv2
 import glob
+import seaborn as sns
 from keras.models import load_model
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from sklearn import metrics
-from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report, plot_confusion_matrix
 from PIL import Image
+from sklearn.utils.multiclass import unique_labels
 
 from func import class_dict, y_train, y_val, y_test, x_train, x_val, x_test
 
@@ -104,30 +107,16 @@ def predict_img(img, the_model, threshold):
 this_model = load_model('model/final_no_callback.h5')
 print("\nModel Loaded successfully\n")
 
-img_path = Image.open(r'pred_test/cars-and-automobiles-must-turn-left-ahead-sign.jpg')
-images = [cv2.imread(file) for file in glob.glob("pred_test/*.jpg")]
-# print(len(images))
+# img_path = Image.open(r'pred_test/cars-and-automobiles-must-turn-left-ahead-sign.jpg')
 
 # TODO: test images
+# gets all images in a folder with the .jpg extension
+images = [cv2.imread(file) for file in glob.glob("pred_test/*.jpg")]
+# check the number of images in the folder
+print(f"Folder contains {len(images)} images")
 for img in images:
     predict_img(img, this_model, 0.90)
 
-# TODO: view convolutional filter outputs
-# layer = [layer for layer in this_model.layers]
-# print(type(layer))  # 13 layers in total
-# print(len(layer))  # shows the number of layers in the model
-# filters, biases = this_model.layers[1].get_weights()
-
-
-# print(layer[1].name, filters.shape)
-
-# for i in range(len(layer)):
-#     print(layer[i].name)
-
-
-# activation_model = models.Model(input_shape=this_model.input, outputs= layer_outputs)
-# activations = activation_model.predict(img_path)
-# print(activations)
 
 y_pred = this_model.predict(x_test)
 # print(type(y_pred))
@@ -135,31 +124,81 @@ y_pred = this_model.predict(x_test)
 y_pred = np.argmax(y_pred, axis=1)
 y_test = np.argmax(y_test, axis=1)
 cm = confusion_matrix(y_test, y_pred)
+# print(cm)
 
 # TODO: view accuracy report
 pred = this_model.predict_classes(x_test)
-print(classification_report(y_test, pred, target_names=traffic_signs))
+
+# print(classification_report(y_test, pred, target_names=traffic_signs))
 
 # TODO: plot confusion matrix
 # classes = 43
-# confusion_matrix = confusion_matrix(y_pred, y_test)
-#
-# plt.figure(figsize=(25, 25))
-# plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-# tick_marks = np.arange(classes)
-#
-# plt.xticks(range(classes), range(classes))
-# plt.yticks(range(classes), range(classes))
-#
-#
-# plt.xticks(rotation=90)
-# plt.xticks(fontsize=16)
-# plt.yticks(fontsize=16)
-# plt.xlabel('Predicted', fontsize=24)
-# plt.ylabel('True', fontsize=24)
-# thresh = cm.max() / 2.
-# for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-#     plt.text(j, i, cm[i, j], horizontalalignment="center",
-#              color="white" if cm[i, j] > thresh else "black")
-# plt.savefig('plot/confusion_matrix_early_stopping.png')
-# plt.show()
+con_matrix = confusion_matrix(pred, y_test)
+
+
+def plot_cm(y_true, y_pred, classes, normalize=False, title=None, cmap=plt.cm.Blues):
+    """
+    Refer to: https://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html
+
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if not title:
+        if normalize:
+            title = 'Normalized confusion matrix'
+        else:
+            title = 'Confusion matrix'
+
+    # Compute confusion matrix
+    cm = confusion_matrix(y_true, y_pred)
+    # Only use the labels that appear in the data
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix')
+
+    print(cm)
+
+    fig, ax = plt.subplots(figsize=(35, 35))
+    im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, fontsize=25, rotation=45)
+    plt.yticks(tick_marks, fontsize=25)
+    plt.xlabel('Predicted label', fontsize=25)
+    plt.ylabel('True label', fontsize=25)
+    plt.title(title, fontsize=30)
+
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes('right', size="5%", pad=0.15)
+    cbar = ax.figure.colorbar(im, ax=ax, cax=cax)
+    cbar.ax.tick_params(labelsize=20)
+
+    # We want to show all ticks...
+    ax.set(xticks=np.arange(cm.shape[1]),
+           yticks=np.arange(cm.shape[0]),
+           # ... and label them with the respective list entries
+           xticklabels=classes, yticklabels=classes,
+           #            title=title,
+           ylabel='Actual',
+           xlabel='Predicted')
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), ha="right",
+             rotation_mode="anchor")
+
+    # Loop over data dimensions and create text annotations.
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            ax.text(j, i, format(cm[i, j], fmt),
+                    fontsize=20,
+                    ha="center", va="center",
+                    color="white" if cm[i, j] > thresh else "black")
+    fig.tight_layout()
+    plt.savefig('plot/confusion_matrix_early_stopping_with_names.png')
+    # plt.show()
+    return ax
+
+
